@@ -6,6 +6,7 @@ import 'package:redux/redux.dart';
 import 'package:todo_redux/model/model.dart';
 import 'package:todo_redux/redux/actions.dart';
 import 'package:todo_redux/redux/reducers.dart';
+import 'package:todo_redux/redux/middleware.dart';
 
 void main() => runApp(MyApp());
 
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
     final Store<AppState> store = Store<AppState>(
       appStateReducer,
       initialState: AppState.initialState(),
+      middleware: [appStateMiddleware],
     );
 
     return StoreProvider<AppState>(
@@ -24,18 +26,27 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: MyHomePage(),
+        home: StoreBuilder<AppState>(
+          onInit: (Store<AppState> store) => store.dispatch(GetItemsAction()),
+          builder: (BuildContext context, Store<AppState> store) {
+            return MyHomePage(store);
+          },
+        ),
       ),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
+  final Store<AppState> store;
+
+  MyHomePage(this.store);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Redux Itemes'),
+        title: Text('Redux Items'),
       ),
       body: StoreConnector<AppState, _ViewModel>(
         converter: (Store<AppState> store) => _ViewModel.create(store),
